@@ -1,0 +1,53 @@
+import pandas as pd
+import numpy as np
+from itertools import permutations
+
+# قراءة البيانات
+conflicts = pd.read_csv("conflicts.csv")  # يحتوي على الأعمدة: sub_id, Conflict_sub_id, NumOfIntercetion
+levels = pd.read_csv("levels.csv")  # يحتوي على الأعمدة: sub_id, level
+
+# استخراج البيانات الأساسية
+levels_dict = levels.groupby("level")["sub_id"].apply(list).to_dict()
+num_levels = len(levels_dict)
+
+# أنماط الترتيب
+patterns = [
+    [1, 2, 3],  # مستوى أول → ثاني → ثالث
+    [3, 1, 2]   # مستوى ثالث → أول → ثاني
+]
+
+# حساب تكلفة الترتيب
+def calculate_cost(order):
+    cost = 0
+    for i in range(len(order) - 1):
+        for sub1 in order[i]:
+            for sub2 in order[i + 1]:
+                conflict = conflicts[
+                    (conflicts["sub_id"] == sub1) & (conflicts["Conflict_sub_id"] == sub2)
+                ]
+                if not conflict.empty:
+                    cost += conflict["NumOfIntercetion"].values[0]
+    return cost
+
+# إيجاد الترتيب الأمثل
+best_order = None
+min_cost = float("inf")
+
+for pattern in patterns:
+    # ترتيب المستويات حسب النمط
+    level_order = [levels_dict[lv] for lv in pattern]
+    # كل التباديل الممكنة داخل كل مستوى
+    permutations_per_level = [list(permutations(level)) for level in level_order]
+    # كل التباديل الممكنة بين المستويات
+    all_combinations = list(permutations(permutations_per_level))
+
+    for combination in all_combinations:
+        flat_order = [item for sublist in combination for item in sublist]
+        cost = calculate_cost(flat_order)
+        if cost < min_cost:
+            min_cost = cost
+            best_order = flat_order
+
+# عرض النتيجة
+print("أفضل ترتيب:", best_order)
+print("التكلفة النهائية:", min_cost)
