@@ -1,0 +1,61 @@
+#ahmed ashraf eldmerdash darwish
+
+
+
+def group_subjects_by_level(levels):
+    grouped = {}
+    for item in levels:
+        level = item["level"]
+        sub_id = item["sub_id"]
+        grouped.setdefault(level, []).append(sub_id)
+    return grouped
+
+def build_conflict_graph(conflicts):
+    graph = {}
+    for conflict in conflicts:
+        sub1, sub2, weight = conflict["sub_id"], conflict["Conflict_sub_id"], conflict["NumOfIntercetion"]
+        graph.setdefault(sub1, []).append((sub2, weight))
+        graph.setdefault(sub2, []).append((sub1, weight))
+    return graph
+
+def greedy_schedule(levels, conflicts):
+    grouped_levels = group_subjects_by_level(levels)
+    conflict_graph = build_conflict_graph(conflicts)
+    
+    subject_weights = {subject: sum(weight for _, weight in edges) for subject, edges in conflict_graph.items()}
+    sorted_subjects = sorted(subject_weights.keys(), key=lambda x: -subject_weights[x])
+    
+    schedule = []
+    used_subjects = set()
+    for subject in sorted_subjects:
+        if subject not in used_subjects:
+            schedule.append(subject)
+            used_subjects.add(subject)
+    return schedule
+
+def calculate_cost(schedule, conflicts):
+    conflict_map = {(conf["sub_id"], conf["Conflict_sub_id"]): conf["NumOfIntercetion"] for conf in conflicts}
+    conflict_map.update({(conf["Conflict_sub_id"], conf["sub_id"]): conf["NumOfIntercetion"] for conf in conflicts})
+    
+    total_cost = 0
+    for i in range(len(schedule) - 1):
+        sub1, sub2 = schedule[i], schedule[i + 1]
+        total_cost += conflict_map.get((sub1, sub2), 0)
+    return total_cost
+
+conflicts = [
+    {"sub_id": 100, "Conflict_sub_id": 200, "NumOfIntercetion": 30},
+    {"sub_id": 100, "Conflict_sub_id": 300, "NumOfIntercetion": 15},
+    {"sub_id": 200, "Conflict_sub_id": 300, "NumOfIntercetion": 20},
+]
+levels = [
+    {"sub_id": 100, "level": 1},
+    {"sub_id": 200, "level": 2},
+    {"sub_id": 300, "level": 3},
+]
+
+schedule = greedy_schedule(levels, conflicts)
+cost = calculate_cost(schedule, conflicts)
+
+print("Best Schedule (Greedy):", schedule)
+print("Total Conflict Cost:", cost)

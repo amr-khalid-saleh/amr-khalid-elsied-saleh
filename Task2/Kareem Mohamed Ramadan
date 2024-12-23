@@ -1,0 +1,71 @@
+import heapq
+import networkx as nx
+
+# Define subjects and their relationships
+subjects = list(range(1, 19))
+
+# Overlapping relationships: (subject1, subject2, cost) after edit
+# Create a graph
+graph = nx.Graph()
+graph.add_nodes_from(subjects)
+
+for subj1, subj2, weight in overlaps:
+    graph.add_edge(subj1, subj2, weight=weight)
+
+# Split subjects into levels
+levels = {
+    "Level1": list(range(1, 7)),
+    "Level2": list(range(7, 13)),
+    "Level3": list(range(13, 19))
+}
+
+# Days
+days = ["Day1", "Day2", "Day3", "Day4", "Day5", "Day6"]
+
+# Helper function to calculate conflict weight
+def conflict_weight(subject):
+    return sum(graph[subject][neighbor]["weight"] for neighbor in graph.neighbors(subject))
+
+# Create a heap for each level
+heaps = {
+    level: [(conflict_weight(subject), subject) for subject in levels[level]]
+    for level in levels
+}
+
+# Turn the lists into heaps
+for level in heaps:
+    heapq.heapify(heaps[level])
+
+# Initialize schedule
+schedule = {day: {"Level1": None, "Level2": None, "Level3": None} for day in days}
+used_subjects = set()
+
+# Assign subjects to schedule
+for day in days:
+    for level in ["Level1", "Level2", "Level3"]:
+        while heaps[level]:
+            _, subject = heapq.heappop(heaps[level])
+            if subject not in used_subjects:
+                schedule[day][level] = subject
+                used_subjects.add(subject)
+                break
+
+# Calculate total conflict cost for the schedule
+def calculate_cost(schedule):
+    total_cost = 0
+    for day, subjects_in_day in schedule.items():
+        subj1, subj2, subj3 = subjects_in_day.values()
+        pairs = [(subj1, subj2), (subj1, subj3), (subj2, subj3)]
+        for pair in pairs:
+            if pair[0] and pair[1] and graph.has_edge(pair[0], pair[1]):
+                total_cost += graph[pair[0]][pair[1]]["weight"]
+    return total_cost
+
+total_conflict_cost = calculate_cost(schedule)
+
+# Output the schedule and conflict cost
+print("\nFinal Schedule:")
+for day, subjects_in_day in schedule.items():
+    print(f"{day}: {subjects_in_day}")
+
+print(f"\nTotal Conflict Cost: {total_conflict_cost}")

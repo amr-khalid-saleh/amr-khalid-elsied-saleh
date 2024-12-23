@@ -1,0 +1,49 @@
+conflict_table = [
+    {"sub_id": 100, "Conflict_sub_id": 200},
+    {"sub_id": 100, "Conflict_sub_id": 300},
+]
+
+level_table = [
+    {"sub_id": 100, "level": 1},
+    {"sub_id": 200, "level": 2},
+    {"sub_id": 300, "level": 3},
+]
+
+
+def group_subjects_by_level(level_table):
+    levels = {}
+    for entry in level_table:
+        level = entry["level"]
+        sub_id = entry["sub_id"]
+        if level not in levels:
+            levels[level] = []
+        levels[level].append(sub_id)
+    return levels
+
+
+def has_conflict(schedule, conflict_table):
+    for conflict in conflict_table:
+        sub1 = conflict["sub_id"]
+        sub2 = conflict["Conflict_sub_id"]
+        if sub1 in schedule and sub2 in schedule:
+            return True 
+    return False
+
+
+def generate_non_conflicting_schedule(levels, conflict_table):
+    all_levels = sorted(levels.keys())
+    schedule = []
+    
+    for level in all_levels:
+        for subject in levels[level]:
+            
+            if not has_conflict(schedule, conflict_table):
+                schedule.append(subject)
+    
+    return schedule
+
+levels = group_subjects_by_level(level_table)
+schedule = generate_non_conflicting_schedule(levels, conflict_table)
+
+print("the best order : ")
+print(schedule)

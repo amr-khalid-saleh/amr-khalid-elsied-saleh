@@ -1,0 +1,82 @@
+Ammar Elsayed Ibrahim Ibrahim
+//code
+conflicts = [
+{"sub_id": 100, "Conflict_sub_id": 200, "NumOfIntercetion": 30},
+{"sub_id": 100, "Conflict_sub_id": 300, "NumOfIntercetion": 15},
+{"sub_id": 200, "Conflict_sub_id": 300, "NumOfIntercetion": 20}]
+levels = [
+{"sub_id": 100, "level": 1},
+{"sub_id": 200, "level": 2},
+{"sub_id": 300, "level": 3}]
+def group_subjects_by_level(levels):
+grouped = {}
+for item in levels:
+level = item["level"]
+sub_id = item["sub_id"]
+if level not in grouped:
+grouped[level] = []
+grouped[level].append(sub_id)
+return grouped
+def build_conflict_graph(conflicts):
+graph = {}
+for conflict in conflicts:
+sub1 = conflict["sub_id"]
+sub2 = conflict["Conflict_sub_id"]
+weight = conflict["NumOfIntercetion"]
+if sub1 not in graph:
+graph[sub1] = []
+if sub2 not in graph:
+graph[sub2] = []
+graph[sub1].append((sub2, weight))
+graph[sub2].append((sub1, weight))
+return graph
+def greedy_schedule(levels, conflicts):
+grouped_levels = group_subjects_by_level(levels)
+conflict_graph = build_conflict_graph(conflicts)
+subject_weights = {}
+for subject, edges in conflict_graph.items():
+subject_weights[subject] = sum(weight for _, weight in edges) 
+sorted_subjects = sorted(subject_weights.keys(), key=lambda x: -subject_weights[x])
+schedule = []
+used_subjects = set()
+for subject in sorted_subjects:
+if subject not in used_subjects:
+schedule.append(subject)
+used_subjects.add(subject)
+return schedule
+def calculate_cost(schedule, conflicts):
+total_cost = 0
+for i in range(len(schedule) - 1):
+sub1 = schedule[i]
+sub2 = schedule[i + 1]
+for conflict in conflicts:
+if (conflict["sub_id"] == sub1 and conflict["Conflict_sub_id"] == sub2) or \
+(conflict["sub_id"] == sub2 and conflict["Conflict_sub_id"] == sub1):
+total_cost += conflict["NumOfIntercetion"]
+return total_cost
+schedule = greedy_schedule(levels, conflicts)
+cost = calculate_cost(schedule, conflicts)
+print("Best Schedule (Greedy):", schedule)
+print("Total Conflict Cost:", cost)
+-----------------------------------------------------------------------------------------------------------------------------
+Pseudcode:
+Inputs:
+ Conflict_Table: List of conflicts between subjects
+ Levels_Table: List of subjects and their levels
+ Patterns: List of possible level arrangements
+Outputs:
+ Best_Order: Optimal arrangement of subjects
+ Min_Cost: Minimum conflict cost
+Procedure:
+1. Initialize Min_Cost = ∞
+2. For each Pattern in Patterns:
+ a. Group subjects by level using Levels_Table.
+ b. Arrange subjects according to the current Pattern.
+ c. Initialize Total_Cost = 0.
+ d. For each day in the arrangement:
+ - Calculate the cost (conflicts) between the current day and the next day.
+ - Add the cost to Total_Cost.
+ e. If Total_Cost < Min_Cost:
+ - Update Min_Cost = Total_Cost.
+ - Update Best_Order = the current arrangement.
+3. Output Best_Order and Min_Cost.

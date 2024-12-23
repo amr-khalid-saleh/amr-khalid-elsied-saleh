@@ -1,0 +1,106 @@
+import random
+# Fathy Reda Fathy 
+#فتحي رضا فتحي
+#cs:5
+
+
+
+
+
+
+
+
+
+
+
+# Defining courses and time slots
+courses = ['Course1', 'Course2', 'Course3', 'Course4', 'Course5']
+time_slots = ['Day1', 'Day2', 'Day3']
+
+# Conflict table (Number of conflicts between courses)
+conflicts = {
+    ('Course1', 'Course2'): 3,
+    ('Course1', 'Course3'): 2,
+    ('Course2', 'Course3'): 1,
+    ('Course3', 'Course4'): 4,
+    ('Course4', 'Course5'): 2
+}
+
+# Course levels table
+levels = {
+    'Course1': 1,
+    'Course2': 2,
+    'Course3': 1,
+    'Course4': 3,
+    'Course5': 2
+}
+
+# Maximum number of courses per level
+courses_per_level = {
+    1: 2,
+    2: 2,
+    3: 1
+}
+
+# Function to create initial population (chromosomes)
+def create_initial_population(pop_size):
+    population = []
+    for _ in range(pop_size):
+        chromosome = []
+        for course in courses:
+            # Randomly choosing a time slot for each course
+            day = random.choice(time_slots)
+            chromosome.append((course, day))
+        population.append(chromosome)
+    return population
+
+# Fitness function to evaluate the schedule
+def fitness_function(chromosome):
+    fitness = 0
+    for i, (course1, day1) in enumerate(chromosome):
+        for j, (course2, day2) in enumerate(chromosome):
+            if i < j:
+                # If the courses are scheduled on the same day and there is a conflict between them
+                if day1 == day2 and (course1, course2) in conflicts:
+                    fitness -= conflicts[(course1, course2)]  # Decrease fitness based on conflict
+    return fitness
+
+# Crossover function (mating)
+def crossover(parent1, parent2):
+    child = []
+    for i in range(len(parent1)):
+        if random.random() > 0.5:
+            child.append(parent1[i])
+        else:
+            child.append(parent2[i])
+    return child
+
+# Mutation function (random change)
+def mutate(chromosome):
+    idx = random.randint(0, len(chromosome) - 1)
+    new_day = random.choice(time_slots)
+    chromosome[idx] = (chromosome[idx][0], new_day)
+
+# Genetic algorithm function
+def genetic_algorithm(pop_size=10, generations=100):
+    population = create_initial_population(pop_size)
+    for generation in range(generations):
+        # Sorting the population based on fitness
+        population = sorted(population, key=lambda x: fitness_function(x), reverse=True)
+        next_generation = population[:2]  # Selecting the best two
+        while len(next_generation) < len(population):
+            parent1, parent2 = random.sample(population[:5], 2)
+            child = crossover(parent1, parent2)
+            if random.random() < 0.1:  # Mutation chance
+                mutate(child)
+            next_generation.append(child)
+        population = next_generation
+    best_schedule = sorted(population, key=lambda x: fitness_function(x), reverse=True)[0]
+    return best_schedule
+
+# Running the genetic algorithm
+best_schedule = genetic_algorithm()
+
+# Display the best schedule
+for course, day in best_schedule:
+    print(f"Course {course} is scheduled on {day}")

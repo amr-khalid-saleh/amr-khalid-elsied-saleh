@@ -1,0 +1,82 @@
+from collections import defaultdict, deque
+
+
+conflict_table = [
+    {"sub_id": 100, "conflict_sub_id": 200, "num_of_intersection": 30},
+    {"sub_id": 100, "conflict_sub_id": 300, "num_of_intersection": 15}
+]
+
+levels_table = [
+    {"sub_id": 100, "level": 1},
+    {"sub_id": 200, "level": 2},
+    {"sub_id": 300, "level": 3}
+]
+
+level_patterns = [
+    [1, 2, 3],
+    [1, 3, 2],
+    [2, 1, 3],
+    [2, 3, 1],
+    [3, 1, 2],
+    [3, 2, 1]
+]
+
+
+def build_graph(conflict_table):
+    graph = defaultdict(list)
+    for conflict in conflict_table:
+        sub1 = conflict["sub_id"]
+        sub2 = conflict["conflict_sub_id"]
+        weight = conflict["num_of_intersection"]
+        graph[sub1].append((sub2, weight))
+        graph[sub2].append((sub1, weight))
+    return graph
+
+
+def bfs_schedule(graph, levels, level_pattern):
+    schedule = []
+    visited = set()
+    total_cost = 0
+
+    queue = deque()
+    for level in level_pattern:
+        for course in levels[level]:
+            if course not in visited:
+                queue.append(course)
+                visited.add(course)
+                schedule.append(course)
+                break
+
+    while queue:
+        current = queue.popleft()
+        for neighbor, weight in graph[current]:
+            if neighbor not in visited:
+                queue.append(neighbor)
+                visited.add(neighbor)
+                schedule.append(neighbor)
+                total_cost += weight  
+    return schedule, total_cost
+
+def find_best_schedule(conflict_table, levels_table):
+
+    graph = build_graph(conflict_table)
+
+    levels = defaultdict(list)
+    for level in levels_table:
+        levels[level["level"]].append(level["sub_id"])
+
+
+    min_cost = float('inf')
+    best_schedule = None
+    for pattern in level_patterns:
+        schedule, cost = bfs_schedule(graph, levels, pattern)
+        if cost < min_cost:
+            min_cost = cost
+            best_schedule = schedule
+
+    return best_schedule, min_cost
+
+
+best_schedule, min_cost = find_best_schedule(conflict_table, levels_table)
+print("Best Schedule:", best_schedule)
+print("Minimum Cost:", min_cost)

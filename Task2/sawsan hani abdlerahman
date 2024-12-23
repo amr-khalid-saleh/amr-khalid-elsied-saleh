@@ -1,0 +1,39 @@
+data = {
+    "Conflict Information": [
+        {"Conflict_sub_id": 1, "NumOfIntersection": 5, "Sub_ID": 101},
+        {"Conflict_sub_id": 2, "NumOfIntersection": 3, "Sub_ID": 101},
+        {"Conflict_sub_id": 1, "NumOfIntersection": 6, "Sub_ID": 102},
+        {"Conflict_sub_id": 3, "NumOfIntersection": 2, "Sub_ID": 102},
+    ],
+    "Level Information": [
+        {"Sub_ID": 101, "Level": "Basic", "Sum": 2},
+        {"Sub_ID": 101, "Level": "Medium", "Sum": 3},
+        {"Sub_ID": 102, "Level": "Basic", "Sum": 1},
+        {"Sub_ID": 102, "Level": "High", "Sum": 2},
+    ],
+    "Cost Information": [
+        {"Sub_ID": 101, "Total_Cost": 100, "Final_Cost": 120},
+        {"Sub_ID": 102, "Total_Cost": 50, "Final_Cost": 70},
+    ],
+}
+
+def calculate_final_cost(data):
+    final_costs = {}
+    for conflict in data["Conflict Information"]:
+        sub_id = conflict["Sub_ID"]
+        if sub_id not in final_costs:
+            final_costs[sub_id] = {"Total_Cost": 0, "Final_Cost": 0}
+        level = next((lvl for lvl in data["Level Information"] if lvl["Sub_ID"] == sub_id), None)
+        if level:
+            if level["Level"] == "Basic":
+                final_costs[sub_id]["Total_Cost"] += 5 * conflict["NumOfIntersection"]
+            elif level["Level"] == "Medium":
+                final_costs[sub_id]["Total_Cost"] += 10 * conflict["NumOfIntersection"]
+            elif level["Level"] == "High":
+                final_costs[sub_id]["Total_Cost"] += 15 * conflict["NumOfIntersection"]
+    for sub_id, costs in final_costs.items():
+        costs["Final_Cost"] = costs["Total_Cost"]
+    return final_costs
+
+final_costs = calculate_final_cost(data)
+print(final_costs)

@@ -1,0 +1,75 @@
+import itertools
+import pandas as pd
+
+# Example Input Data
+conflict_table = pd.DataFrame({
+    'sub_id': ['A', 'A', 'B', 'C', 'D', 'D'],
+    'conflict_sub_id': ['B', 'C', 'D', 'E', 'F', 'E'],
+    'NumOfIntersection': [3, 2, 4, 1, 5, 2]
+})
+
+level_table = pd.DataFrame({
+    'sub_id': ['A', 'B', 'C', 'D', 'E', 'F'],
+    'level': [1, 1, 2, 2, 3, 3]
+})
+
+num_courses_per_level = 6
+
+# Define the cost function
+def calculate_cost(schedule):
+    cost = 0
+    for i, day_courses in enumerate(schedule):
+        for course in day_courses:
+            # Find conflicts for the current course
+            conflicts = conflict_table[conflict_table['sub_id'] == course]
+            for _, conflict in conflicts.iterrows():
+                conflict_course = conflict['conflict_sub_id']
+                if any(conflict_course in day_courses for day_courses in schedule[max(0, i-1):i+2]):
+                    cost += conflict['NumOfIntersection']
+    return cost
+
+# Generate schedules
+def generate_schedule(levels, pattern):
+    # Apply the pattern to generate the order of levels
+    ordered_levels = []
+    for i in range(len(levels) // len(pattern)):
+        ordered_levels.extend(pattern)
+
+    # Assign courses to days based on the ordered levels
+    schedule = []
+    level_courses = {level: list(level_table[level_table['level'] == level]['sub_id']) for level in levels}
+
+    for level in ordered_levels:
+        if len(level_courses[level]) > 0:
+            schedule.append(level_courses[level][:num_courses_per_level])
+            level_courses[level] = level_courses[level][num_courses_per_level:]
+
+    return schedule
+
+# Main logic
+levels = [1, 2, 3]
+patterns = [
+    [1, 2, 3],
+    [3, 1, 2],
+    [2, 3, 1],
+    [1, 3, 2],
+    [2, 1, 3],
+    [3, 2, 1]
+]
+
+best_schedule = None
+min_cost = float('inf')
+
+for pattern in patterns:
+    schedule = generate_schedule(levels, pattern)
+    cost = calculate_cost(schedule)
+    if cost < min_cost:
+        min_cost = cost
+        best_schedule = schedule
+
+# Output the best schedule and its cost
+print("Best Schedule:")
+for day, courses in enumerate(best_schedule, start=1):
+    print(f"Day {day}: {', '.join(courses)}")
+
+print(f"Minimum Cost: {min_cost}")

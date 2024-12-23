@@ -1,0 +1,68 @@
+<?php
+//Done By Eihab Adel Shokry
+
+// بنعرف جدول التداخلات
+$conflict_table = [
+    ["sub_id" => 100, "conflict_sub_id" => 200, "NumOfInteraction" => 30],
+    ["sub_id" => 100, "conflict_sub_id" => 300, "NumOfInteraction" => 15],
+];
+
+// بنعرف جدول المستويات
+$level_table = [
+    ["sub_id" => 100, "level" => 1],
+    ["sub_id" => 200, "level" => 2],
+    ["sub_id" => 300, "level" => 3],
+];
+
+// إنشاء مصفوفة تحتوي على معرفات المواد
+$subjects = array_column($level_table, 'sub_id');
+
+// دالة لحساب التكلفة لترتيب معين
+function calculate_cost($order, $conflict_table)
+{
+    $cost = 0;
+    foreach ($conflict_table as $conflict) {
+        $sub1_index = array_search($conflict["sub_id"], $order);
+        $sub2_index = array_search($conflict["conflict_sub_id"], $order);
+        $days_difference = abs($sub1_index - $sub2_index);
+        $cost += $conflict["NumOfInteraction"] * $days_difference;
+    }
+    return $cost;
+}
+
+// توليد جميع الترتيبات الممكنة (Permutations)
+function get_permutations($subjects)
+{
+    if (count($subjects) == 1) {
+        return [$subjects];
+    }
+
+    $result = [];
+    for ($i = 0; $i < count($subjects); $i++) {
+        $current = $subjects[$i];
+        $remaining = array_slice($subjects, 0, $i) + array_slice($subjects, $i + 1);
+        $permuts = get_permutations($remaining);
+        foreach ($permuts as $perm) {
+            $result[] = array_merge([$current], $perm);
+        }
+    }
+    return $result;
+}
+
+// إنشاء جميع الترتيبات الممكنة
+$all_possible_orders = get_permutations($subjects);
+
+$min_cost = PHP_FLOAT_MAX;
+$best_order = null;
+
+// فحص جميع الترتيبات لحساب التكلفة
+foreach ($all_possible_orders as $order) {
+    $cost = calculate_cost($order, $conflict_table);
+    if ($cost < $min_cost) {
+        $min_cost = $cost;
+        $best_order = $order;
+    }
+}
+
+echo "أفضل ترتيب: " . implode(", ", $best_order) . PHP_EOL;
+echo "التكلفة الأقل: " . $min_cost . PHP_EOL;

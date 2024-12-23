@@ -1,0 +1,44 @@
+from itertools import permutations
+
+# inputs
+conflicts = [
+    {"sub_id": 100, "Conflict_sub_id": 200, "NumOfInteraction": 30},
+    {"sub_id": 100, "Conflict_sub_id": 300, "NumOfInteraction": 15},
+    {"sub_id": 200, "Conflict_sub_id": 300, "NumOfInteraction": 20},
+]
+
+levels = [
+    {"sub_id": 100, "level": 1},
+    {"sub_id": 200, "level": 2},
+    {"sub_id": 300, "level": 3},
+]
+
+# Number of courses at each level
+subjects_per_level = 6
+
+# Generate all possible arrangements
+possible_orders = list(permutations([1, 2, 3]))
+
+# Function to calculate final cost
+def calculate_cost(order, conflicts):
+    cost = 0
+    for conflict in conflicts:
+        sub1_level = order[levels[conflict["sub_id"] - 100]["level"] - 1]
+        sub2_level = order[levels[conflict["Conflict_sub_id"] - 100]["level"] - 1]
+        if abs(sub1_level - sub2_level) == 1:
+            cost += conflict["NumOfInteraction"]
+    return cost
+
+# Less costly account
+best_order = None
+min_cost = float("inf")
+
+for order in possible_orders:
+    cost = calculate_cost(order, conflicts)
+    if cost < min_cost:
+        min_cost = cost
+        best_order = order
+
+# results
+print("أفضل ترتيب:", best_order)
+print("Less expensive:", min_cost)

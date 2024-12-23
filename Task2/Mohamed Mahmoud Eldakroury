@@ -1,0 +1,114 @@
+# Mohammed Mahmoud Mahmoud Eldakroury 
+# sec : 2 
+#level 3 
+#marge sort with con = 320 
+
+import networkx as nx
+# Define subjects and their relationships
+subjects = list(range(1, 19))
+
+# Overlapping relationships: (subject1, subject2, cost) after edit
+overlaps =  [
+    (1, 7, 40), (1, 9, 30), (1, 14, 50), (1, 15, 100),
+    (2, 11, 50), (2, 8, 40), (2, 18, 100), (2, 17, 80), (2, 7, 80),
+    (3, 10, 10), (3, 12, 40), (3, 13, 80), (3, 17, 50), (3, 9, 80),
+    (4, 8, 100), (4, 9, 45), (4, 14, 20), (4, 15, 100), (4, 10, 20),
+    (5, 10, 20), (5, 12, 60), (5, 7, 80), (5, 14, 50),
+    (6, 8, 70), (6, 12, 80), (6, 10, 50), (6, 18, 40),
+    (7, 13, 40), (7, 15, 40), (7, 3, 40), (7, 14, 30),
+    (8, 17, 100), (8, 14, 20), (8, 5, 40), (8, 16, 30),
+    (9, 16, 80), (9, 18, 20), (9, 5, 40), (9, 14, 30),
+    (10, 13, 50), (10, 17, 30), (10, 1, 40), (10, 18, 30),
+    (11, 14, 100), (11, 15, 20), (11, 3, 40), (11, 18, 30),
+    (12, 13, 40), (12, 18, 80), (12, 17, 40), (12, 4, 30)
+ ]
+
+# Create a graph
+graph = nx.Graph()
+graph.add_nodes_from(subjects)
+
+for subj1, subj2, weight in overlaps:
+    graph.add_edge(subj1, subj2, weight=weight)
+
+# Split subjects into levels
+levels = {
+    "Level1": list(range(1, 7)),
+    "Level2": list(range(7, 13)),
+    "Level3": list(range(13, 19))
+}
+
+# Calculate conflict weight for a subject
+def conflict_weight(subject):
+    return sum(graph[subject][neighbor]["weight"] for neighbor in graph.neighbors(subject))
+
+# Merge sort implementation
+def merge_sort(arr):
+    if len(arr) > 1:
+        mid = len(arr) // 2
+        left_half = arr[:mid]
+        right_half = arr[mid:]
+
+        merge_sort(left_half)
+        merge_sort(right_half)
+
+        i = j = k = 0
+
+        while i < len(left_half) and j < len(right_half):
+            if conflict_weight(left_half[i]) < conflict_weight(right_half[j]):
+                arr[k] = left_half[i]
+                i += 1
+            else:
+                arr[k] = right_half[j]
+                j += 1
+            k += 1
+
+        while i < len(left_half):
+            arr[k] = left_half[i]
+            i += 1
+            k += 1
+
+        while j < len(right_half):
+            arr[k] = right_half[j]
+            j += 1
+            k += 1
+
+# Sort each level
+for level in levels:
+    merge_sort(levels[level])
+
+# Assign subjects to days
+days = ["Day1", "Day2", "Day3", "Day4", "Day5", "Day6"]
+schedule = {day: {"Level1": None, "Level2": None, "Level3": None} for day in days}
+
+used_subjects = set()
+for day in days:
+    for level in ["Level1", "Level2", "Level3"]:
+        for subject in levels[level]:
+            if subject not in used_subjects:
+                schedule[day][level] = subject
+                used_subjects.add(subject)
+                break
+
+# Calculate total conflict cost
+def calculate_cost(schedule):
+    total_cost = 0
+    for day, subjects_in_day in schedule.items():
+        subj1, subj2, subj3 = subjects_in_day.values()
+        pairs = [(subj1, subj2), (subj1, subj3), (subj2, subj3)]
+        for pair in pairs:
+            if pair[0] and pair[1] and graph.has_edge(pair[0], pair[1]):
+                total_cost += graph[pair[0]][pair[1]]["weight"]
+    return total_cost
+
+total_conflict_cost = calculate_cost(schedule)
+
+# Output the schedule and conflict cost
+print("\nFinal Schedule:")
+for day, subjects_in_day in schedule.items():
+    print(f"{day}: {subjects_in_day}")
+
+print(f"\nTotal Conflict Cost: {total_conflict_cost}")
+
+
+
+

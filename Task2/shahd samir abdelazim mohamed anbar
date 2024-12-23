@@ -1,0 +1,35 @@
+conflicts = [
+    {"sub_id": 100, "Conflict_sub_id": 200, "NumOfInterection": 30},
+    {"sub_id": 300, "Conflict_sub_id": 100, "NumOfInterection": 15},
+]
+
+
+
+
+levels = [
+    {"sub_id": 100, "level": 1},
+    {"sub_id": 200, "level": 2},
+    {"sub_id": 300, "level": 3},
+]
+
+
+
+
+sorted_courses = sorted(levels, key=lambda x: x["level"])
+
+
+final_cost = 0
+for conflict in conflicts:
+    sub_level = next((lvl["level"] for lvl in levels if lvl["sub_id"] == conflict["sub_id"]), None)
+    conflict_level = next((lvl["level"] for lvl in levels if lvl["sub_id"] == conflict["Conflict_sub_id"]), None)
+    
+    if sub_level and conflict_level:
+        
+        final_cost += conflict["NumOfInterection"] * abs(sub_level - conflict_level)
+
+
+print("ترتيب المقررات حسب المستوى:")
+for course in sorted_courses:
+    print(f"المقرر: {course['sub_id']}, المستوى: {course['level']}")
+
+print(f"\nالتكلفة النهائية: {final_cost}")

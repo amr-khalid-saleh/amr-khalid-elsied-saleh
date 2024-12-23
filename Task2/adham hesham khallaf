@@ -1,0 +1,62 @@
+import itertools
+from collections import defaultdict
+
+# Sample data
+course_conflicts = {
+    'course1': ['course2', 'course3'],
+    'course2': ['course1', 'course4'],
+    'course3': ['course1'],
+    'course4': ['course2'],
+    'course5': [],
+    'course6': [],
+}
+
+# Levels of courses
+course_levels = {
+    'course1': 1,
+    'course2': 1,
+    'course3': 2,
+    'course4': 2,
+    'course5': 3,
+    'course6': 3,
+}
+
+# Function to calculate conflict cost
+def calculate_conflict_cost(schedule):
+    cost = 0
+    for i in range(len(schedule)):
+        for j in range(i + 1, len(schedule)):
+            if schedule[j] in course_conflicts.get(schedule[i], []):
+                cost += 1
+    return cost
+
+# Function to generate all possible schedules based on levels
+def generate_schedules(levels):
+    all_courses = [course for level in levels for course in levels[level]]
+    return itertools.permutations(all_courses)
+
+# Function to find the best schedule
+def find_best_schedule(levels):
+    best_schedule = None
+    min_cost = float('inf')
+    
+    for schedule in generate_schedules(levels):
+        cost = calculate_conflict_cost(schedule)
+        if cost < min_cost:
+            min_cost = cost
+            best_schedule = schedule
+
+    return best_schedule, min_cost
+
+# Define levels
+levels = {
+    1: ['course1', 'course2'],
+    2: ['course3', 'course4'],
+    3: ['course5', 'course6'],
+}
+
+# Find the best schedule
+best_schedule, min_cost = find_best_schedule(levels)
+
+print("Best Schedule:", best_schedule)
+print("Minimum Conflict Cost:", min_cost)

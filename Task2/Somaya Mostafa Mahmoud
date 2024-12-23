@@ -1,0 +1,49 @@
+import itertools
+import numpy as np
+
+conflict_table = [
+    {'sub_id': 100, 'Conflict_sub_id': 200, 'NumOfIntercetion': 30},
+    {'sub_id': 200, 'Conflict_sub_id': 300, 'NumOfIntercetion': 15}
+]
+
+levels_table = [
+    {'sub_id': 100, 'level': 1},
+    {'sub_id': 200, 'level': 2},
+    {'sub_id': 300, 'level': 3}
+]
+
+unique_levels = sorted(set(item['level'] for item in levels_table))
+
+level_patterns = list(itertools.permutations(unique_levels))
+
+subject_to_level = {item['sub_id']: item['level'] for item in levels_table}
+
+def calculate_cost(pattern, conflict_table, subject_to_level):
+    cost = 0
+    level_order = list(pattern)
+    
+    level_position = {level: i for i, level in enumerate(level_order)}
+
+    for conflict in conflict_table:
+        sub1_level = subject_to_level[conflict['sub_id']]
+        sub2_level = subject_to_level[conflict['Conflict_sub_id']]
+
+        
+        if abs(level_position[sub1_level] - level_position[sub2_level]) == 1:
+            cost += conflict['NumOfIntercetion']
+
+    return cost
+
+
+optimal_pattern = None
+minimal_cost = float('inf')
+
+for pattern in level_patterns:
+    cost = calculate_cost(pattern, conflict_table, subject_to_level)
+    if cost < minimal_cost:
+        minimal_cost = cost
+        optimal_pattern = pattern
+
+
+print("Optimal Level Arrangement:", optimal_pattern)
+print("Minimal Cost:", minimal_cost)
